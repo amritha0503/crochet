@@ -1,10 +1,9 @@
 import os
-import shutil
 import uuid
 from fastapi import APIRouter, HTTPException, Header, Depends, UploadFile, File
 from pydantic import BaseModel
 from models.schemas import Product
-from config.firebase import db
+from config.firebase import db, get_bucket
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -61,16 +60,18 @@ def verify_admin_login(authorized: bool = Depends(verify_passkey)):
 def upload_image(file: UploadFile = File(...), authorized: bool = Depends(verify_passkey)):
     try:
         # Generate safe unique filename
-        ext = file.filename.split(".")[-1]
-        filename = f"{uuid.uuid4().hex[:8]}.{ext}"
-        filepath = os.path.join("static", "images", filename)
-        
-        with open(filepath, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
-        apiurl = os.getenv("RENDER_EXTERNAL_URL", "http://localhost:8000")
-        file_url = f"{apiurl}/static/images/{filename}"
-        return {"success": True, "url": file_url}
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+        filename = f"products/{uuid.uuid4().hex[:12]}.{ext}"
+
+        # Upload to Firebase Storage
+        bucket = get_bucket()
+        blob = bucket.blob(filename)
+        blob.upload_from_file(file.file, content_type=file.content_type)
+
+        # Make the file publicly accessible
+        blob.make_public()
+
+        return {"success": True, "url": blob.public_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
 
