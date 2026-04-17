@@ -68,10 +68,16 @@ def upload_image(file: UploadFile = File(...), authorized: bool = Depends(verify
         blob = bucket.blob(filename)
         blob.upload_from_file(file.file, content_type=file.content_type)
 
-        # Make the file publicly accessible
-        blob.make_public()
+        # Build Firebase Storage public download URL
+        # This format works when Firebase Storage Rules allow public read
+        from config.firebase import FIREBASE_STORAGE_BUCKET
+        encoded_path = filename.replace("/", "%2F")
+        public_url = (
+            f"https://firebasestorage.googleapis.com/v0/b/"
+            f"{FIREBASE_STORAGE_BUCKET}/o/{encoded_path}?alt=media"
+        )
 
-        return {"success": True, "url": blob.public_url}
+        return {"success": True, "url": public_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
 
