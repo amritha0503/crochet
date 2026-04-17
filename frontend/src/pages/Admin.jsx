@@ -102,7 +102,9 @@ export default function Admin() {
         }));
       }
     } catch (err) {
-      alert("Image upload failed");
+      const detail = err.response?.data?.detail || err.message || "Unknown error";
+      alert(`Image upload failed:\n\n${detail}`);
+      console.error("Upload error:", err.response?.data);
     } finally {
       setUploadingImage(false);
     }
