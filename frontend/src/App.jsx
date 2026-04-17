@@ -7,6 +7,7 @@ import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
 import Profile from './pages/Profile';
 import ProductDetail from './pages/ProductDetail';
+import OrderTracking from './pages/OrderTracking';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/track" element={<OrderTracking />} />
               </Routes>
             </main>
             <footer className="bg-[#3d2314] text-[#fdf6f0] py-8 text-center mt-12 relative">

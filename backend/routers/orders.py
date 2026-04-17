@@ -18,7 +18,7 @@ def create_order(order: OrderCreate):
         **order.model_dump(),
         id=f"ord_{uuid.uuid4().hex[:8]}",
         status="pending",
-        payment_status="pending",
+        payment_status=order.payment_status if hasattr(order, 'payment_status') and order.payment_status else "pending",
         created_at=datetime.utcnow().isoformat() + "Z",
         updated_at=datetime.utcnow().isoformat() + "Z"
     )
@@ -31,6 +31,20 @@ def create_order(order: OrderCreate):
         print("⚠️ Order saved to MOCK storage")
 
     return new_order
+
+@router.get("/track/{phone}")
+def track_orders_by_phone(phone: str):
+    """Look up all orders by customer phone number — for order tracking page."""
+    if db:
+        docs = db.collection("orders")\
+            .where("shipping_address.phone", "==", phone)\
+            .order_by("created_at", direction="DESCENDING")\
+            .stream()
+        orders = [doc.to_dict() for doc in docs]
+        if not orders:
+            raise HTTPException(status_code=404, detail="No orders found for this phone number.")
+        return orders
+    raise HTTPException(status_code=503, detail="Database not available.")
 
 @router.get("/user/{user_id}", response_model=List[Order])
 def get_user_orders(user_id: str):
@@ -51,3 +65,4 @@ def get_order(order_id: str):
         if order.id == order_id:
             return order
     raise HTTPException(status_code=404, detail="Order not found")
+
