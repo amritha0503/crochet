@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #3d2314;
+  --color-secondary: #c47c82;
+  --color-bg: #fdf6f0;
+}
+
+@layer utilities {
+  .animate-marquee {
+    animation: marquee 25s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+body {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  background-color: #fdf6f0;
+  color: #2a1f1a;
+}
