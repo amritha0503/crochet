@@ -36,24 +36,29 @@ def create_order(order: OrderCreate):
 def track_orders_by_phone(phone: str):
     """Look up all orders by customer phone number — for order tracking page."""
     import re
-    # Clean phone: keep only digits
-    clean_phone = re.sub(r"\D", "", phone)
+    # Clean input phone: keep only digits
+    search_phone = re.sub(r"\D", "", phone)
     
     if db:
-        # Fetch all orders for this phone
-        docs = db.collection("orders")\
-            .where("shipping_address.phone", "==", clean_phone)\
-            .stream()
+        # To be safe and catch all (even old formatting), fetch all recent orders 
+        # and filter by cleaned phone in Python
+        # (Assuming the shop has < 1000 orders, this is very fast)
+        docs = db.collection("orders").order_by("created_at", direction="DESCENDING").limit(500).stream()
         
-        orders = [doc.to_dict() for doc in docs]
+        all_matches = []
+        for doc in docs:
+            order = doc.to_dict()
+            stored_phone = order.get("shipping_address", {}).get("phone", "")
+            # Clean stored phone and compare
+            if re.sub(r"\D", "", stored_phone) == search_phone:
+                all_matches.append(order)
         
-        if not orders:
+        if not all_matches:
             raise HTTPException(status_code=404, detail="No orders found for this phone number.")
             
-        # Sort by created_at descending in Python to avoid needing a Firestore index
-        orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
-        return orders
+        return all_matches
     raise HTTPException(status_code=503, detail="Database not available.")
+
 
 
 

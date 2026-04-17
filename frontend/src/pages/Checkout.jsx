@@ -136,12 +136,14 @@ export default function Checkout() {
     })),
     shipping_address: {
       name: `${formData.firstName} ${formData.lastName}`,
-      phone: formData.phone || '0000000000',
+      // Clean phone number: keep only digits before saving
+      phone: (formData.phone || '0000000000').replace(/\D/g, ''),
       line1: formData.line1,
       city: formData.city,
       state: formData.state,
       pincode: formData.pincode
     },
+
     subtotal: state.total_price,
     shipping_fee: 50,
     discount: 0,
