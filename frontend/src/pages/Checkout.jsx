@@ -211,11 +211,6 @@ export default function Checkout() {
       </div>
     );
   }
-          Continue Shopping
-        </Link>
-      </div>
-    );
-  }
 
   if (state.items.length === 0) {
     return (
