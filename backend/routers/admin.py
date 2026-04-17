@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, Header, Depends, UploadFile, File
 from pydantic import BaseModel
 from models.schemas import Product
-from config.firebase import db, get_bucket
+from config.firebase import db
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -59,27 +59,28 @@ def verify_admin_login(authorized: bool = Depends(verify_passkey)):
 @router.post("/upload")
 def upload_image(file: UploadFile = File(...), authorized: bool = Depends(verify_passkey)):
     try:
-        # Generate safe unique filename
-        ext = file.filename.rsplit(".", 1)[-1].lower()
-        filename = f"products/{uuid.uuid4().hex[:12]}.{ext}"
+        import cloudinary
+        import cloudinary.uploader
 
-        # Upload to Firebase Storage
-        bucket = get_bucket()
-        blob = bucket.blob(filename)
-        blob.upload_from_file(file.file, content_type=file.content_type)
-
-        # Build Firebase Storage public download URL
-        # This format works when Firebase Storage Rules allow public read
-        from config.firebase import FIREBASE_STORAGE_BUCKET
-        encoded_path = filename.replace("/", "%2F")
-        public_url = (
-            f"https://firebasestorage.googleapis.com/v0/b/"
-            f"{FIREBASE_STORAGE_BUCKET}/o/{encoded_path}?alt=media"
+        # Configure Cloudinary from env vars
+        cloudinary.config(
+            cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+            api_key=os.getenv("CLOUDINARY_API_KEY"),
+            api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+            secure=True
         )
 
-        return {"success": True, "url": public_url}
+        # Upload directly from file stream
+        result = cloudinary.uploader.upload(
+            file.file,
+            folder="crochet-products",
+            resource_type="image"
+        )
+
+        return {"success": True, "url": result["secure_url"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
+
 
 class OrderStatusUpdate(BaseModel):
     status: str
