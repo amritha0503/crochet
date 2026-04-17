@@ -31,6 +31,8 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cod'); // 'online' | 'cod' | 'whatsapp'
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -122,46 +124,77 @@ export default function Checkout() {
     paymentObject.open();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const buildOrderPayload = () => ({
+    user_id: currentUser ? currentUser.uid : null,
+    items: state.items.map(item => ({
+      product_id: item.id,
+      name: item.name,
+      image_url: item.image_url || '',
+      price: parseInt(item.price.replace('₹', '')),
+      quantity: item.quantity,
+      subtotal: item.subtotal
+    })),
+    shipping_address: {
+      name: `${formData.firstName} ${formData.lastName}`,
+      phone: formData.phone || '0000000000',
+      line1: formData.line1,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode
+    },
+    subtotal: state.total_price,
+    shipping_fee: 50,
+    discount: 0,
+    total: state.total_price + 50
+  });
+
+  const handleCOD = async () => {
     setLoading(true);
     setError(null);
-
-    // 1. Create our internal Database Order First
-    const orderPayload = {
-      user_id: currentUser ? currentUser.uid : null,
-      items: state.items.map(item => ({
-        product_id: item.id,
-        name: item.name,
-        image_url: "placeholder_image",
-        price: parseInt(item.price.replace('₹', '')),
-        quantity: item.quantity,
-        subtotal: item.subtotal
-      })),
-      shipping_address: {
-        name: `${formData.firstName} ${formData.lastName}`,
-        phone: formData.phone || "0000000000",
-        line1: formData.line1,
-        city: formData.city,
-        state: formData.state,
-        pincode: formData.pincode
-      },
-      subtotal: state.total_price,
-      shipping_fee: 50,
-      discount: 0,
-      total: state.total_price + 50
-    };
-
     try {
-      const response = await axios.post(`${API_URL}/orders/`, orderPayload);
-      const newOrderId = response.data.id;
-      
-      // 2. Setup and trigger Razorpay Popup
-      await displayRazorpay(newOrderId);
-      
+      await axios.post(`${API_URL}/orders/`, { ...buildOrderPayload(), payment_status: 'cod' });
+      clearCart();
+      setSuccessMsg('🎉 Order placed! Pay ₹' + (state.total_price + 50) + ' when your package arrives.');
+      setSuccess(true);
     } catch (err) {
-      console.error("Order creation failed:", err);
-      setError("Failed to create order in database. Please try again.");
+      setError('Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWhatsApp = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await axios.post(`${API_URL}/orders/`, { ...buildOrderPayload(), payment_status: 'whatsapp' });
+      const itemsList = state.items.map(i => `• ${i.name} x${i.quantity} = ₹${i.subtotal}`).join('%0A');
+      const msg = `Hi! I'd like to order:%0A${itemsList}%0A%0ATotal: ₹${state.total_price + 50}%0AName: ${formData.firstName} ${formData.lastName}%0AAddress: ${formData.line1}, ${formData.city}%0APhone: ${formData.phone}`;
+      clearCart();
+      setSuccess(true);
+      setSuccessMsg('✅ Order saved! Redirecting to WhatsApp...');
+      setTimeout(() => window.open(`https://wa.me/919946949286?text=${msg}`, '_blank'), 1000);
+    } catch (err) {
+      setError('Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (paymentMethod === 'cod') { handleCOD(); return; }
+    if (paymentMethod === 'whatsapp') { handleWhatsApp(); return; }
+
+    // Online payment via Razorpay
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post(`${API_URL}/orders/`, buildOrderPayload());
+      await displayRazorpay(response.data.id);
+    } catch (err) {
+      console.error('Order creation failed:', err);
+      setError('Failed to create order. Please try again.');
       setLoading(false);
     }
   };
@@ -170,9 +203,14 @@ export default function Checkout() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <div className="text-8xl mb-8">🎉</div>
-        <h1 className="text-4xl font-bold text-[#2e9e56] mb-4">Payment Successful!</h1>
-        <p className="text-[#6b3a28] mb-8 text-lg">Thank you! Your crochet order has been verified and processed securely.</p>
+        <h1 className="text-4xl font-bold text-[#2e9e56] mb-4">Order Confirmed!</h1>
+        <p className="text-[#6b3a28] mb-8 text-lg">{successMsg || 'Thank you! Your crochet order has been placed.'}</p>
         <Link to="/shop" className="bg-[#6b3a28] text-[#fdf6f0] px-8 py-3 rounded-full font-semibold hover:bg-[#3d2314] transition-colors">
+          Continue Shopping
+        </Link>
+      </div>
+    );
+  }
           Continue Shopping
         </Link>
       </div>
@@ -246,25 +284,57 @@ export default function Checkout() {
             </div>
             
             <div className="mt-8 pt-8 border-t border-[#fdf6f0]">
-              <h2 className="text-2xl font-bold text-[#3d2314] mb-4">Secure Payment</h2>
-              <div className="bg-[#f0f8ff] p-4 rounded-lg flex items-center justify-between border border-[#b4d4e8]">
-                <div className="text-[#4a90c4] font-medium text-sm flex items-center gap-2">
-                  <span>🔒</span> Payments processed safely by Razorpay
-                </div>
-                <div className="flex gap-2">
-                  <span className="bg-white text-xs px-2 py-1 rounded border shadow-sm font-bold">UPI</span>
-                  <span className="bg-white text-xs px-2 py-1 rounded border shadow-sm font-bold">CARDS</span>
-                </div>
+              <h2 className="text-2xl font-bold text-[#3d2314] mb-4">Choose Payment</h2>
+              <div className="grid grid-cols-1 gap-3">
+
+                {/* Cash on Delivery */}
+                <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#c47c82] bg-[#fff5f5]' : 'border-gray-200 hover:border-[#e8b4b8]'}`}>
+                  <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="accent-[#c47c82] w-4 h-4" />
+                  <div className="text-3xl">🚚</div>
+                  <div>
+                    <p className="font-bold text-[#3d2314]">Cash on Delivery</p>
+                    <p className="text-sm text-[#6b3a28]">Pay when your package arrives — no card needed!</p>
+                  </div>
+                  <span className="ml-auto text-xs bg-green-100 text-green-700 font-bold px-2 py-1 rounded-full">Popular</span>
+                </label>
+
+                {/* WhatsApp Order */}
+                <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'whatsapp' ? 'border-[#25D366] bg-[#f0fff4]' : 'border-gray-200 hover:border-[#25D366]'}`}>
+                  <input type="radio" name="payment" value="whatsapp" checked={paymentMethod === 'whatsapp'} onChange={() => setPaymentMethod('whatsapp')} className="accent-[#25D366] w-4 h-4" />
+                  <div className="text-3xl">💬</div>
+                  <div>
+                    <p className="font-bold text-[#3d2314]">Order via WhatsApp</p>
+                    <p className="text-sm text-[#6b3a28]">Place order &amp; pay via UPI/bank on WhatsApp</p>
+                  </div>
+                </label>
+
+                {/* Online Payment */}
+                <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#1b365d] bg-[#f0f4ff]' : 'border-gray-200 hover:border-[#1b365d]'}`}>
+                  <input type="radio" name="payment" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="accent-[#1b365d] w-4 h-4" />
+                  <div className="text-3xl">💳</div>
+                  <div>
+                    <p className="font-bold text-[#3d2314]">Pay Online (Razorpay)</p>
+                    <p className="text-sm text-[#6b3a28]">UPI, Cards, Netbanking, Wallets</p>
+                  </div>
+                  <div className="ml-auto flex gap-1">
+                    <span className="text-xs bg-white border px-1.5 py-0.5 rounded font-bold shadow-sm">UPI</span>
+                    <span className="text-xs bg-white border px-1.5 py-0.5 rounded font-bold shadow-sm">Card</span>
+                  </div>
+                </label>
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="w-full bg-[#1b365d] text-white py-4 rounded-lg font-bold text-lg hover:bg-[#122440] transition-colors mt-6 shadow-md flex items-center justify-center gap-2">
-              {loading ? (
-                <>Processing...</>
-              ) : (
-                <>Pay ₹{state.total_price + 50}</>
-              )}
+            <button type="submit" disabled={loading} className={`w-full py-4 rounded-lg font-bold text-lg transition-colors mt-6 shadow-md flex items-center justify-center gap-2 text-white ${
+              paymentMethod === 'whatsapp' ? 'bg-[#25D366] hover:bg-[#1da851]' :
+              paymentMethod === 'cod'      ? 'bg-[#c47c82] hover:bg-[#a85c63]' :
+                                            'bg-[#1b365d] hover:bg-[#122440]'
+            }`}>
+              {loading ? 'Processing...' :
+               paymentMethod === 'whatsapp' ? `📲 Order on WhatsApp — ₹${state.total_price + 50}` :
+               paymentMethod === 'cod'      ? `🚚 Place COD Order — ₹${state.total_price + 50}` :
+                                              `💳 Pay Online — ₹${state.total_price + 50}`}
             </button>
+
           </form>
         </div>
 
