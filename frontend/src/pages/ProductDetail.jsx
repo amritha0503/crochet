@@ -14,6 +14,7 @@ export default function ProductDetail() {
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetchProduct();
@@ -27,6 +28,7 @@ export default function ProductDetail() {
       const found = res.data.find(p => p.slug === slug);
       if (found) {
         setProduct(found);
+        setSelectedImage(found.images?.[0] || null);
       } else {
         // Not found
         navigate('/shop');
@@ -66,14 +68,28 @@ export default function ProductDetail() {
         {/* Images */}
         <div className="md:w-1/2 flex flex-col gap-4">
           <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center text-7xl border border-gray-100">
-             {product.images && product.images[0] ? (
-               <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-             ) : (<span>🧸</span>)}
+             {selectedImage ? (
+               <img
+                 src={selectedImage}
+                 alt={product.name}
+                 className="w-full h-full object-cover transition-opacity duration-300"
+               />
+             ) : <span>🧸</span>}
           </div>
           {product.images && product.images.length > 1 && (
-            <div className="flex gap-4 overflow-x-auto pb-2">
+            <div className="flex gap-3 overflow-x-auto pb-2">
               {product.images.map((img, i) => (
-                <img key={i} src={img} alt="thumbnail" className="w-20 h-20 rounded-xl object-cover border border-gray-200 shadow-sm" />
+                <img
+                  key={i}
+                  src={img}
+                  alt={`view ${i + 1}`}
+                  onClick={() => setSelectedImage(img)}
+                  className={`w-20 h-20 rounded-xl object-cover shadow-sm cursor-pointer transition-all duration-200 ${
+                    selectedImage === img
+                      ? 'border-2 border-[#c47c82] scale-105 shadow-md'
+                      : 'border border-gray-200 hover:border-[#e8b4b8] hover:scale-105'
+                  }`}
+                />
               ))}
             </div>
           )}
