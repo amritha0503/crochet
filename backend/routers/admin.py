@@ -33,14 +33,14 @@ def add_product(product: Product, authorized: bool = Depends(verify_passkey)):
 @router.put("/products/{product_id}", response_model=Product)
 def update_product(product_id: str, product: Product, authorized: bool = Depends(verify_passkey)):
     if db:
-        doc_ref = db.collection("products").document(product_id)
-        if not doc_ref.get().exists:
-            raise HTTPException(status_code=404, detail="Product not found")
         # Ensure the ID in payload matches endpoint
         product.id = product_id
-        doc_ref.update(product.model_dump())
+        doc_ref = db.collection("products").document(product_id)
+        # Use set() with merge=False to upsert — works even if the doc doesn't exist yet
+        doc_ref.set(product.model_dump())
         return product
     raise HTTPException(status_code=500, detail="Database not configured")
+
 
 @router.delete("/products/{product_id}")
 def delete_product(product_id: str, authorized: bool = Depends(verify_passkey)):
