@@ -61,8 +61,7 @@ export default function Checkout() {
       amount: amount.toString(),
       currency: currency,
       name: "Crochet Boutique",
-      description: "Test Transaction",
-      image: "https://example.com/your_logo", // Optional logo
+      description: "Handcrafted with love 🧶",
       order_id: razorpay_order_id,
       handler: async function (response) {
         // 3. User successfully paid, now verify signature with Backend
@@ -90,12 +89,34 @@ export default function Checkout() {
         contact: formData.phone
       },
       theme: { color: "#c47c82" },
+      // Explicitly enable UPI and all payment methods
+      config: {
+        display: {
+          blocks: {
+            upi_block: {
+              name: "Pay via UPI",
+              instruments: [{ method: "upi" }]
+            },
+            other: {
+              name: "Other Payment Modes",
+              instruments: [
+                { method: "card" },
+                { method: "netbanking" },
+                { method: "wallet" }
+              ]
+            }
+          },
+          sequence: ["block.upi_block", "block.other"],
+          preferences: { show_default_blocks: false }
+        }
+      },
       modal: {
         ondismiss: function() {
-           setLoading(false); // Enable button if user closes popup
+           setLoading(false);
         }
       }
     };
+
 
     const paymentObject = new window.Razorpay(options);
     paymentObject.open();
