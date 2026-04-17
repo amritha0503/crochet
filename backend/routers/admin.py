@@ -68,7 +68,8 @@ def upload_image(file: UploadFile = File(...), authorized: bool = Depends(verify
         with open(filepath, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        file_url = f"http://localhost:8000/static/images/{filename}"
+        apiurl = os.getenv("RENDER_EXTERNAL_URL", "http://localhost:8000")
+        file_url = f"{apiurl}/static/images/{filename}"
         return {"success": True, "url": file_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
