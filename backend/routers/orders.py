@@ -35,10 +35,14 @@ def create_order(order: OrderCreate):
 @router.get("/track/{phone}")
 def track_orders_by_phone(phone: str):
     """Look up all orders by customer phone number — for order tracking page."""
+    import re
+    # Clean phone: keep only digits
+    clean_phone = re.sub(r"\D", "", phone)
+    
     if db:
         # Fetch all orders for this phone
         docs = db.collection("orders")\
-            .where("shipping_address.phone", "==", phone)\
+            .where("shipping_address.phone", "==", clean_phone)\
             .stream()
         
         orders = [doc.to_dict() for doc in docs]
@@ -50,6 +54,7 @@ def track_orders_by_phone(phone: str):
         orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         return orders
     raise HTTPException(status_code=503, detail="Database not available.")
+
 
 
 @router.get("/user/{user_id}", response_model=List[Order])

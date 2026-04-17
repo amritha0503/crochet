@@ -205,12 +205,22 @@ export default function Checkout() {
         <div className="text-8xl mb-8">🎉</div>
         <h1 className="text-4xl font-bold text-[#2e9e56] mb-4">Order Confirmed!</h1>
         <p className="text-[#6b3a28] mb-8 text-lg">{successMsg || 'Thank you! Your crochet order has been placed.'}</p>
-        <Link to="/shop" className="bg-[#6b3a28] text-[#fdf6f0] px-8 py-3 rounded-full font-semibold hover:bg-[#3d2314] transition-colors">
-          Continue Shopping
-        </Link>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <Link 
+            to="/track" 
+            state={{ phone: formData.phone }}
+            className="bg-[#c47c82] text-white px-8 py-3 rounded-full font-bold hover:bg-[#a85c63] transition-colors shadow-md"
+          >
+            Track Your Order →
+          </Link>
+          <Link to="/shop" className="bg-[#fcf9f6] border-2 border-[#3d2314] text-[#3d2314] px-8 py-3 rounded-full font-bold hover:bg-[#3d2314] hover:text-white transition-colors">
+            Continue Shopping
+          </Link>
+        </div>
       </div>
     );
   }
+
 
   if (state.items.length === 0) {
     return (

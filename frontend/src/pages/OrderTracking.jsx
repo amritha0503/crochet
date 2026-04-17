@@ -121,20 +121,23 @@ function OrderCard({ order }) {
 }
 
 export default function OrderTracking() {
-  const [phone, setPhone] = useState('');
+  const location = useLocation();
+  const [phone, setPhone] = useState(location.state?.phone || '');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searched, setSearched] = useState(false);
 
-  const handleTrack = async (e) => {
-    e.preventDefault();
+  const fetchOrders = useCallback(async (phoneNumber) => {
+    if (!phoneNumber) return;
     setLoading(true);
     setError(null);
     setOrders([]);
     setSearched(false);
     try {
-      const res = await axios.get(`${API_URL}/orders/track/${phone.trim()}`);
+      // Clean phone number: remove any non-digit characters
+      const cleanPhone = phoneNumber.replace(/\D/g, '');
+      const res = await axios.get(`${API_URL}/orders/track/${cleanPhone}`);
       setOrders(res.data);
       setSearched(true);
     } catch (err) {
@@ -143,6 +146,18 @@ export default function OrderTracking() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Auto-search if phone is provided in location state
+  useEffect(() => {
+    if (location.state?.phone) {
+      fetchOrders(location.state.phone);
+    }
+  }, [location.state, fetchOrders]);
+
+  const handleTrack = (e) => {
+    e.preventDefault();
+    fetchOrders(phone);
   };
 
   return (
