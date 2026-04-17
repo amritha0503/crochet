@@ -36,15 +36,21 @@ def create_order(order: OrderCreate):
 def track_orders_by_phone(phone: str):
     """Look up all orders by customer phone number — for order tracking page."""
     if db:
+        # Fetch all orders for this phone
         docs = db.collection("orders")\
             .where("shipping_address.phone", "==", phone)\
-            .order_by("created_at", direction="DESCENDING")\
             .stream()
+        
         orders = [doc.to_dict() for doc in docs]
+        
         if not orders:
             raise HTTPException(status_code=404, detail="No orders found for this phone number.")
+            
+        # Sort by created_at descending in Python to avoid needing a Firestore index
+        orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         return orders
     raise HTTPException(status_code=503, detail="Database not available.")
+
 
 @router.get("/user/{user_id}", response_model=List[Order])
 def get_user_orders(user_id: str):

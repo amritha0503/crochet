@@ -22,6 +22,9 @@ export default function Navbar() {
             <Link to="/shop" className="text-[#3d2314] hover:text-[#c47c82] px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Shop
             </Link>
+            <Link to="/track" className="text-[#3d2314] hover:text-[#c47c82] px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              Track Order
+            </Link>
           </div>
           <div className="flex items-center gap-6">
             <Link to="/profile" className="text-[#3d2314] hover:text-[#c47c82] transition-colors font-bold flex items-center gap-2">
