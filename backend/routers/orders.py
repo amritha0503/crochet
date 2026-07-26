@@ -65,8 +65,10 @@ def track_orders_by_phone(phone: str):
 @router.get("/user/{user_id}", response_model=List[Order])
 def get_user_orders(user_id: str):
     if db:
-        docs = db.collection("orders").where("user_id", "==", user_id).order_by("created_at", direction="DESCENDING").stream()
-        return [doc.to_dict() for doc in docs]
+        docs = db.collection("orders").where("user_id", "==", user_id).stream()
+        orders = [doc.to_dict() for doc in docs]
+        orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return orders
     
     return [order for order in MOCK_ORDERS if order.user_id == user_id]
 
