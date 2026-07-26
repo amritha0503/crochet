@@ -223,14 +223,15 @@ export default function OrderTracking() {
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, color: '#3d2314', marginBottom: 12 }}>
             Track Your Order
           </h1>
-          <p style={{ color: '#6b3a28', fontSize: '1.05rem', maxWidth: 420, margin: '0 auto' }}>
-            Enter the phone number you used when placing your order.
-          </p>
+          {!currentUser && (
+            <p style={{ color: '#6b3a28', fontSize: '1.05rem', maxWidth: 420, margin: '0 auto' }}>
+              Enter the phone number you used when placing your order.
+            </p>
+          )}
         </div>
 
-        {/* Search Card */}
-        <div className="track-card">
-          {!currentUser && (
+        {!currentUser && (
+          <div className="track-card">
             <form onSubmit={handleTrack}>
               <label style={{ display: 'block', fontWeight: 700, color: '#3d2314', marginBottom: 8 }}>
                 📱 Phone Number
@@ -248,8 +249,8 @@ export default function OrderTracking() {
                 {loading ? '🔍 Searching...' : '🔍 Track My Orders'}
               </button>
             </form>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Results */}
         {searched && (
