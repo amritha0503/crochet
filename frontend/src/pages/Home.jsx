@@ -681,19 +681,19 @@ export default function Home() {
               </svg>
             </div>
             <h2 className="font-display" style={{ fontSize: '2.5rem', fontWeight: 700, color: '#3d2314', marginBottom: '16px' }}>
-              Join Our Community
+              Join My Community
             </h2>
             <p className="font-body" style={{ color: '#6b3a28', fontSize: '1.1rem', marginBottom: '32px', lineHeight: 1.6 }}>
               Follow me on Instagram for behind-the-scenes looks, new pattern drops, and a daily dose of crochet inspiration.
             </p>
             <a 
-              href="https://instagram.com/crochetstories" 
+              href="https://instagram.com/cro.chet_stories" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="btn-primary" 
               style={{ textDecoration: 'none', display: 'inline-block', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', border: 'none', color: 'white', padding: '16px 36px', borderRadius: '100px', fontWeight: 700, fontSize: '1.1rem', boxShadow: '0 8px 24px rgba(220, 39, 67, 0.3)' }}
             >
-              @crochetstories
+              @cro.chet_stories
             </a>
           </div>
         </section>
