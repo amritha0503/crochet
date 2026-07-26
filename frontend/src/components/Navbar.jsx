@@ -12,7 +12,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="text-2xl font-bold text-[#6b3a28] flex items-center gap-2">
-              <span>🧶</span> Crochet Boutique
+              <span>🧶</span> Crochet Stories
             </Link>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

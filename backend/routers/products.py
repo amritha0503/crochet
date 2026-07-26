@@ -115,6 +115,45 @@ def get_products(category: str = None):
         return [p for p in MOCK_PRODUCTS if p["category"] == category]
     return MOCK_PRODUCTS
 
+@router.get("/store/stats")
+def get_store_stats():
+    """Fetch aggregated store statistics for the home page."""
+    if not db:
+        return {"customers": 0, "products": 0, "rating": 0.0}
+    
+    # 1. Customers (Orders count)
+    orders_count = 0
+    try:
+        orders_docs = db.collection("orders").stream()
+        orders_count = len(list(orders_docs))
+    except Exception:
+        pass
+
+    # 2. Products and Reviews
+    products_count = 0
+    total_rating = 0
+    total_reviews = 0
+    
+    try:
+        product_docs = db.collection("products").stream()
+        for doc in product_docs:
+            products_count += 1
+            data = doc.to_dict()
+            reviews = data.get("reviews", [])
+            for r in reviews:
+                total_rating += r.get("rating", 0)
+                total_reviews += 1
+    except Exception:
+        pass
+
+    avg_rating = round(total_rating / total_reviews, 1) if total_reviews > 0 else 0.0
+    
+    return {
+        "customers": orders_count,
+        "products": products_count,
+        "rating": avg_rating
+    }
+
 @router.get("/reviews/latest")
 def get_latest_reviews(limit: int = 6):
     """Fetch the most recent reviews across all products for the home page."""

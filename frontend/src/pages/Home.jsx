@@ -14,12 +14,14 @@ export default function Home() {
   const { currentUser, loginWithGoogle } = useAuth();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [latestReviews, setLatestReviews] = useState([]);
+  const [storeStats, setStoreStats] = useState(null);
   const [heroVisible, setHeroVisible] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     fetchFeatured();
     fetchLatestReviews();
+    fetchStoreStats();
     // Trigger hero animation on load
     const t = setTimeout(() => setHeroVisible(true), 150);
 
@@ -83,6 +85,15 @@ export default function Home() {
       setLatestReviews(res.data);
     } catch (err) {
       console.error("Failed to load reviews");
+    }
+  };
+
+  const fetchStoreStats = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/products/store/stats`);
+      setStoreStats(res.data);
+    } catch (err) {
+      console.error("Failed to load store stats");
     }
   };
 
@@ -468,7 +479,7 @@ export default function Home() {
 
             <div className={`reveal reveal-3 ${heroVisible ? 'visible' : ''}`}>
               <p className="font-body" style={{ fontSize: '1.1rem', color: '#6b3a28', marginBottom: '36px', fontWeight: 400, lineHeight: 1.7, maxWidth: '480px', margin: '0 auto 36px' }}>
-                Discover our magical collection of amigurumi, crochet plushies, and artisan accessories — made with love, one stitch at a time.
+                Handcrafted tales in every stitch. Discover our magical collection of amigurumi, crochet plushies, and artisan accessories — made with love.
               </p>
             </div>
 
@@ -503,9 +514,9 @@ export default function Home() {
         <section style={{ background: 'white', padding: '48px 24px', borderBottom: '1px solid #ece0d8' }}>
           <div className="scroll-hidden" style={{ maxWidth: '800px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
             {[
-              { num: '500+', label: 'Happy Customers' },
-              { num: '200+', label: 'Unique Designs' },
-              { num: '4.9★', label: 'Average Rating' },
+              { num: storeStats ? `${storeStats.customers}+` : '...', label: 'Happy Customers' },
+              { num: storeStats ? `${storeStats.products}+` : '...', label: 'Unique Designs' },
+              { num: storeStats ? `${storeStats.rating}★` : '...', label: 'Average Rating' },
             ].map((stat, i) => (
               <div key={i} className={`stat-item scroll-hidden delay-${(i + 1) * 100}`}>
                 <div className="stat-number">{stat.num}</div>

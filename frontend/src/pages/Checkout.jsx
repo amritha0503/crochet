@@ -62,8 +62,8 @@ export default function Checkout() {
       key: key_id,
       amount: amount.toString(),
       currency: currency,
-      name: "Crochet Boutique",
-      description: "Handcrafted with love 🧶",
+      name: "Crochet Stories",
+      description: "Order Payment",
       order_id: razorpay_order_id,
       handler: async function (response) {
         // 3. User successfully paid, now verify signature with Backend

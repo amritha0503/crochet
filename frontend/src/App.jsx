@@ -31,7 +31,7 @@ function App() {
               </Routes>
             </main>
             <footer className="bg-[#3d2314] text-[#fdf6f0] py-8 text-center mt-12 relative">
-              <p>© 2026 Crochet E-Commerce. Made with ❤️</p>
+              <p>© 2026 Crochet Stories. Made with ❤️</p>
               <Link to="/admin" className="absolute bottom-4 right-4 text-xs text-[#a08a7f] hover:text-[#c47c82]">Admin Login</Link>
             </footer>
           </div>
