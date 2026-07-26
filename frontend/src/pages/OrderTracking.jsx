@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -154,6 +154,22 @@ export default function OrderTracking() {
       fetchOrders(location.state.phone);
     }
   }, [location.state, fetchOrders]);
+
+  // Live updates: Poll the backend every 5 seconds after searching
+  useEffect(() => {
+    let interval;
+    if (searched && phone) {
+      interval = setInterval(() => {
+        const cleanPhone = phone.replace(/\D/g, '');
+        if (!cleanPhone) return;
+        // Fetch silently without toggling the loading state so UI doesn't blink
+        axios.get(`${API_URL}/orders/track/${cleanPhone}`)
+          .then(res => setOrders(res.data))
+          .catch(err => { /* Silently ignore polling errors so it doesn't disrupt the user */ });
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [searched, phone]);
 
   const handleTrack = (e) => {
     e.preventDefault();
