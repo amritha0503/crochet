@@ -115,6 +115,40 @@ def get_products(category: str = None):
         return [p for p in MOCK_PRODUCTS if p["category"] == category]
     return MOCK_PRODUCTS
 
+@router.get("/reviews/latest")
+def get_latest_reviews(limit: int = 6):
+    """Fetch the most recent reviews across all products for the home page."""
+    if not db:
+        return []
+    
+    all_reviews = []
+    docs = db.collection("products").stream()
+    for doc in docs:
+        product_data = doc.to_dict()
+        reviews = product_data.get("reviews", [])
+        if not reviews:
+            continue
+        for review in reviews:
+            all_reviews.append({
+                **review,
+                "product_name": product_data.get("name", "Unknown Product"),
+                "product_slug": product_data.get("slug", ""),
+            })
+    
+    # Sort by created_at descending and limit
+    all_reviews.sort(key=lambda r: r.get("created_at", ""), reverse=True)
+    return all_reviews[:limit]
+
+@router.get("/categories/all", response_model=List[Category])
+def get_categories():
+    if db:
+        docs = db.collection("categories").order_by("sort_order").stream()
+        categories = [doc.to_dict() for doc in docs]
+        if categories:
+            return categories
+
+    return MOCK_CATEGORIES
+
 @router.get("/{product_id}", response_model=Product)
 def get_product(product_id: str):
     if db:
@@ -126,16 +160,6 @@ def get_product(product_id: str):
         if p["id"] == product_id:
             return p
     raise HTTPException(status_code=404, detail="Product not found")
-
-@router.get("/categories/all", response_model=List[Category])
-def get_categories():
-    if db:
-        docs = db.collection("categories").order_by("sort_order").stream()
-        categories = [doc.to_dict() for doc in docs]
-        if categories:
-            return categories
-
-    return MOCK_CATEGORIES
 
 @router.post("/{product_id}/reviews", response_model=Product)
 def add_product_review(product_id: str, review: Review):

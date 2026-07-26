@@ -13,11 +13,13 @@ function Particle({ style }) {
 export default function Home() {
   const { currentUser, loginWithGoogle } = useAuth();
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [latestReviews, setLatestReviews] = useState([]);
   const [heroVisible, setHeroVisible] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     fetchFeatured();
+    fetchLatestReviews();
     // Trigger hero animation on load
     const t = setTimeout(() => setHeroVisible(true), 150);
 
@@ -72,6 +74,15 @@ export default function Home() {
       setFeaturedProducts(featured.length > 0 ? featured : res.data.slice(0, 8));
     } catch (err) {
       console.error("Failed to load products");
+    }
+  };
+
+  const fetchLatestReviews = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/products/reviews/latest?limit=6`);
+      setLatestReviews(res.data);
+    } catch (err) {
+      console.error("Failed to load reviews");
     }
   };
 
@@ -593,7 +604,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ===== TESTIMONIALS ===== */}
+        {/* ===== TESTIMONIALS (Real Reviews) ===== */}
         <section className="testimonial-section">
           <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             <div className="scroll-hidden" style={{ textAlign: 'center', marginBottom: '56px' }}>
@@ -602,24 +613,51 @@ export default function Home() {
                 What People Are Saying
               </h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-              {[
-                { name: 'Priya S.', text: 'The little bunny I ordered was absolutely adorable. My daughter sleeps with it every night now!', stars: 5 },
-                { name: 'Ananya M.', text: 'Incredible craftsmanship. The colors are so vibrant and the yarn quality is top-notch. Will definitely order again!', stars: 5 },
-                { name: 'Rohan K.', text: 'Ordered a custom piece for my girlfriend\'s birthday and it was perfect. Great communication throughout!', stars: 5 },
-              ].map((t, i) => (
-                <div key={i} className={`testimonial-card scroll-hidden delay-${((i % 3) + 1) * 100}`}>
-                  <div className="stars" style={{ marginBottom: '14px', marginTop: '12px' }}>{'★'.repeat(t.stars)}</div>
-                  <p className="font-body" style={{ color: '#3d2314', lineHeight: 1.8, marginBottom: '20px', fontStyle: 'italic' }}>{t.text}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #e8b4b8, #c47c82)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.9rem', fontFamily: "'DM Sans'" }}>
-                      {t.name[0]}
+            {latestReviews.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                {latestReviews.map((r, i) => (
+                  <div key={i} className={`testimonial-card scroll-hidden delay-${((i % 3) + 1) * 100}`}>
+                    <div className="stars" style={{ marginBottom: '14px', marginTop: '12px' }}>
+                      {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
                     </div>
-                    <span className="font-body" style={{ fontWeight: 600, color: '#3d2314', fontSize: '0.9rem' }}>{t.name}</span>
+                    <p className="font-body" style={{ color: '#3d2314', lineHeight: 1.8, marginBottom: '8px', fontStyle: 'italic' }}>"{r.comment}"</p>
+                    {r.product_name && (
+                      <p className="font-body" style={{ fontSize: '0.78rem', color: '#c47c82', marginBottom: '16px' }}>
+                        Reviewed{' '}
+                        {currentUser && r.product_slug ? (
+                          <Link to={`/product/${r.product_slug}`} style={{ color: '#c47c82', fontWeight: 600, textDecoration: 'underline' }}>
+                            {r.product_name}
+                          </Link>
+                        ) : (
+                          <strong>{r.product_name}</strong>
+                        )}
+                      </p>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #e8b4b8, #c47c82)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.9rem', fontFamily: "'DM Sans'" }}>
+                        {r.user_name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <span className="font-body" style={{ fontWeight: 600, color: '#3d2314', fontSize: '0.9rem', display: 'block' }}>{r.user_name}</span>
+                        {r.created_at && (
+                          <span className="font-body" style={{ fontSize: '0.72rem', color: '#a08a7f' }}>
+                            {new Date(r.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="scroll-hidden" style={{ textAlign: 'center', padding: '48px 24px', background: 'white', borderRadius: '24px', border: '1px dashed #d4b4a0' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '16px' }}>💬</div>
+                <h3 className="font-display" style={{ fontSize: '1.4rem', fontWeight: 700, color: '#3d2314', marginBottom: '8px' }}>No Reviews Yet</h3>
+                <p className="font-body" style={{ color: '#6b3a28', maxWidth: '400px', margin: '0 auto' }}>
+                  Be the first to share your experience! Browse our shop and leave a review on any product you love.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
