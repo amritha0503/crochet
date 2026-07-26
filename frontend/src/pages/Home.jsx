@@ -53,7 +53,7 @@ export default function Home() {
     };
   }, []);
 
-  // Make sure we re-observe when featured products load (for the marquee)
+  // Make sure we re-observe when data loads
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -63,11 +63,11 @@ export default function Home() {
       });
     }, { threshold: 0.1 });
 
-    const hiddenElements = document.querySelectorAll('.scroll-hidden');
+    const hiddenElements = document.querySelectorAll('.scroll-hidden:not(.scrolled-in)');
     hiddenElements.forEach(el => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [featuredProducts]);
+  }, [featuredProducts, latestReviews, storeStats]);
 
   const fetchFeatured = async () => {
     try {
