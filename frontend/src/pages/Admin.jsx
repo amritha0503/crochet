@@ -11,6 +11,7 @@ export default function Admin() {
   
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -45,12 +46,14 @@ export default function Admin() {
 
   const fetchData = async () => {
     try {
-      const [prodRes, ordRes] = await Promise.all([
+      const [prodRes, ordRes, revRes] = await Promise.all([
         axios.get(`${API_URL}/products/`),
-        axios.get(`${API_URL}/admin/orders`, { headers: { 'x-admin-passkey': passkey } })
+        axios.get(`${API_URL}/admin/orders`, { headers: { 'x-admin-passkey': passkey } }),
+        axios.get(`${API_URL}/admin/reviews`, { headers: { 'x-admin-passkey': passkey } })
       ]);
       setProducts(prodRes.data);
       setOrders(ordRes.data);
+      setReviews(revRes.data);
     } catch (err) {
       console.error("Failed to fetch data", err);
     }
@@ -163,6 +166,18 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteReview = async (productId, reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      await axios.delete(`${API_URL}/admin/products/${productId}/reviews/${reviewId}`, {
+        headers: { 'x-admin-passkey': passkey }
+      });
+      setReviews(reviews.filter(r => r.id !== reviewId && r.user_id !== reviewId));
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to delete review");
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-xl shadow-md border border-[#fdf6f0] text-center">
@@ -203,6 +218,12 @@ export default function Admin() {
               onClick={() => { setActiveTab('orders'); setShowForm(false); }}
             >
               🚚 Live Orders
+            </button>
+            <button 
+              className={`font-bold px-4 py-2 rounded-t-lg transition-colors ${activeTab === 'reviews' ? 'bg-[#fdf6f0] text-[#3d2314] border-b-4 border-[#c47c82]' : 'text-gray-500 hover:bg-gray-50'}`}
+              onClick={() => { setActiveTab('reviews'); setShowForm(false); }}
+            >
+              💬 Reviews
             </button>
           </div>
         </div>
@@ -411,6 +432,38 @@ export default function Admin() {
                <div className="text-4xl mb-4">📭</div>
                <h3 className="text-xl font-bold text-[#3d2314]">No Orders Yet</h3>
                <p className="text-gray-500 mt-2">When customers place orders, they will appear right here!</p>
+             </div>
+           )}
+        </div>
+      )}
+
+      {activeTab === 'reviews' && (
+        <div className="space-y-4">
+           {reviews.map((review, idx) => (
+             <div key={idx} className="bg-white p-6 rounded-xl shadow-sm border border-[#f0e0d8] flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-bold text-[#3d2314]">{review.user_name}</span>
+                    <span className="text-yellow-400 text-lg">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                    <span className="text-gray-400 text-sm">{new Date(review.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p className="text-[#6b3a28] mb-2 italic">"{review.comment}"</p>
+                  <p className="text-sm text-[#c47c82] font-semibold">Product: {review.product_name}</p>
+                </div>
+                <button 
+                  onClick={() => handleDeleteReview(review.product_id, review.id || review.user_id)}
+                  className="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-100 transition-colors"
+                >
+                  Delete
+                </button>
+             </div>
+           ))}
+           
+           {reviews.length === 0 && (
+             <div className="bg-white p-12 rounded-xl border border-dashed border-[#d4b4a0] text-center">
+               <div className="text-4xl mb-4">💬</div>
+               <h3 className="text-xl font-bold text-[#3d2314]">No Reviews Yet</h3>
+               <p className="text-gray-500 mt-2">When customers leave reviews, they will appear right here!</p>
              </div>
            )}
         </div>
