@@ -364,8 +364,9 @@ export default function Admin() {
               {products.length === 0 && <div className="p-8 text-center text-gray-500 font-medium">No products found in inventory.</div>}
             </div>
           )}
-        </>
-      ) : (
+      )}
+
+      {activeTab === 'orders' && (
         // ORDERS TAB
         <div className="space-y-6">
            {orders.map(order => (
