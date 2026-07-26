@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -122,11 +123,29 @@ function OrderCard({ order }) {
 
 export default function OrderTracking() {
   const location = useLocation();
+  const { currentUser } = useAuth();
+  
   const [phone, setPhone] = useState(location.state?.phone || '');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searched, setSearched] = useState(false);
+
+  const fetchOrdersByUser = useCallback(async (userId) => {
+    if (!userId) return;
+    setLoading(true);
+    setError(null);
+    setOrders([]);
+    setSearched(true);
+    try {
+      const res = await axios.get(`${API_URL}/orders/user/${userId}`);
+      setOrders(res.data);
+    } catch (err) {
+      setError('Failed to fetch your orders.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const fetchOrders = useCallback(async (phoneNumber) => {
     if (!phoneNumber) return;
@@ -148,28 +167,35 @@ export default function OrderTracking() {
     }
   }, []);
 
-  // Auto-search if phone is provided in location state
+  // Auto-search if logged in OR phone is provided in location state
   useEffect(() => {
-    if (location.state?.phone) {
+    if (currentUser) {
+      fetchOrdersByUser(currentUser.uid);
+    } else if (location.state?.phone) {
       fetchOrders(location.state.phone);
     }
-  }, [location.state, fetchOrders]);
+  }, [currentUser, location.state, fetchOrders, fetchOrdersByUser]);
 
   // Live updates: Poll the backend every 5 seconds after searching
   useEffect(() => {
     let interval;
-    if (searched && phone) {
+    if (searched && (phone || currentUser)) {
       interval = setInterval(() => {
-        const cleanPhone = phone.replace(/\D/g, '');
-        if (!cleanPhone) return;
-        // Fetch silently without toggling the loading state so UI doesn't blink
-        axios.get(`${API_URL}/orders/track/${cleanPhone}`)
-          .then(res => setOrders(res.data))
-          .catch(err => { /* Silently ignore polling errors so it doesn't disrupt the user */ });
+        if (currentUser) {
+          axios.get(`${API_URL}/orders/user/${currentUser.uid}`)
+            .then(res => setOrders(res.data))
+            .catch(err => {});
+        } else {
+          const cleanPhone = phone.replace(/\D/g, '');
+          if (!cleanPhone) return;
+          axios.get(`${API_URL}/orders/track/${cleanPhone}`)
+            .then(res => setOrders(res.data))
+            .catch(err => {});
+        }
       }, 5000);
     }
     return () => clearInterval(interval);
-  }, [searched, phone]);
+  }, [searched, phone, currentUser]);
 
   const handleTrack = (e) => {
     e.preventDefault();
@@ -204,23 +230,25 @@ export default function OrderTracking() {
 
         {/* Search Card */}
         <div className="track-card">
-          <form onSubmit={handleTrack}>
-            <label style={{ display: 'block', fontWeight: 700, color: '#3d2314', marginBottom: 8 }}>
-              📱 Phone Number
-            </label>
-            <input
-              className="track-input"
-              type="tel"
-              placeholder="e.g. 9946949286"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              required
-              maxLength={10}
-            />
-            <button className="track-btn" type="submit" disabled={loading}>
-              {loading ? '🔍 Searching...' : '🔍 Track My Orders'}
-            </button>
-          </form>
+          {!currentUser && (
+            <form onSubmit={handleTrack}>
+              <label style={{ display: 'block', fontWeight: 700, color: '#3d2314', marginBottom: 8 }}>
+                📱 Phone Number
+              </label>
+              <input
+                className="track-input"
+                type="tel"
+                placeholder="e.g. 9946949286"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                required
+                maxLength={10}
+              />
+              <button className="track-btn" type="submit" disabled={loading}>
+                {loading ? '🔍 Searching...' : '🔍 Track My Orders'}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Results */}
