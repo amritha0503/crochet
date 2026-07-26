@@ -672,24 +672,31 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ===== FOOTER STRIP ===== */}
-        <div style={{ background: '#3d2314', padding: '48px 24px 36px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
-            <a href="https://www.instagram.com/cro.chet_stories?igsh=eGNyenUxejAyY256" target="_blank" rel="noreferrer" className="social-link instagram" aria-label="Instagram">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+        {/* ===== INSTAGRAM PROMO ===== */}
+        <section style={{ padding: '80px 24px', textAlign: 'center', background: '#fffaf6' }}>
+          <div className="scroll-hidden" style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '20px', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', marginBottom: '24px' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm3.98-10.822a1.44 1.44 0 110 2.881 1.44 1.44 0 010-2.881z" />
               </svg>
-            </a>
-            <a href="https://wa.me/9946949286" target="_blank" rel="noreferrer" className="social-link whatsapp" aria-label="WhatsApp">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11.996 0A12 12 0 000 12c0 2.09.537 4.103 1.558 5.908L.005 24l6.236-1.614A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 11.996 0zm0 21.998c-1.782 0-3.522-.449-5.076-1.298l-.364-.2-.303.078-3.669.95.968-3.578.1-.383-.223-.376C2.652 15.534 2.012 13.805 2.012 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10zm5.492-7.5c-.301-.15-1.781-.88-2.057-.98-.276-.1-.477-.15-.678.15s-.778.98-.954 1.18c-.176.2-.351.225-.652.075-.3-.15-1.272-.47-2.423-1.492-.895-.795-1.5-1.776-1.676-2.076-.176-.3-.019-.462.13-.612.136-.135.301-.35.452-.525.151-.175.201-.3.301-.5.101-.2.051-.375-.025-.525-.075-.15-.678-1.635-.928-2.24-.244-.59-.493-.51-.678-.52h-.578c-.201 0-.527.075-.803.375s-1.054 1.03-1.054 2.51c0 1.48 1.079 2.91 1.229 3.11.15.2 2.122 3.238 5.138 4.54 2.164.935 3.037.892 3.663.832.7-.068 1.781-.728 2.032-1.432.251-.703.251-1.305.176-1.432-.075-.125-.276-.2-.577-.35z" />
-              </svg>
+            </div>
+            <h2 className="font-display" style={{ fontSize: '2.5rem', fontWeight: 700, color: '#3d2314', marginBottom: '16px' }}>
+              Join Our Community
+            </h2>
+            <p className="font-body" style={{ color: '#6b3a28', fontSize: '1.1rem', marginBottom: '32px', lineHeight: 1.6 }}>
+              Follow us on Instagram for behind-the-scenes looks, new pattern drops, and a daily dose of crochet inspiration.
+            </p>
+            <a 
+              href="https://instagram.com/crochetstories" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-primary" 
+              style={{ textDecoration: 'none', display: 'inline-block', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', border: 'none', color: 'white', padding: '16px 36px', borderRadius: '100px', fontWeight: 700, fontSize: '1.1rem', boxShadow: '0 8px 24px rgba(220, 39, 67, 0.3)' }}
+            >
+              @crochetstories
             </a>
           </div>
-          <p className="font-body" style={{ color: 'rgba(253,246,240,0.4)', fontSize: '0.85rem' }}>
-            © 2026 Crochet Stories · Handcrafted with 💝 in India
-          </p>
-        </div>
+        </section>
       </div>
     </>
   );
