@@ -10,6 +10,10 @@ class Review(BaseModel):
     comment: str
     created_at: str
 
+class Variant(BaseModel):
+    name: str
+    options: List[str]
+
 class Product(BaseModel):
     id: str
     name: str
@@ -24,6 +28,7 @@ class Product(BaseModel):
     is_featured: bool
     is_active: bool
     weight_grams: int
+    variants: Optional[List[Variant]] = []
     reviews: Optional[List[Review]] = []
     created_at: str
     updated_at: str
@@ -42,6 +47,7 @@ class OrderItem(BaseModel):
     product_id: str
     name: str
     image_url: str
+    variant: Optional[str] = None
     price: int
     quantity: int
     subtotal: int

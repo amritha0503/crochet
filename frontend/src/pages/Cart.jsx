@@ -26,24 +26,25 @@ export default function Cart() {
         <div className="flex-grow">
           <div className="space-y-6">
             {state.items.map(item => (
-              <div key={item.id} className="flex items-center gap-6 bg-white p-4 rounded-xl shadow-sm border border-[#fdf6f0]">
+              <div key={item.cartItemId} className="flex items-center gap-6 bg-white p-4 rounded-xl shadow-sm border border-[#fdf6f0]">
                 <div className="h-24 w-24 bg-[#f0f8ff] flex items-center justify-center text-5xl rounded-lg flex-shrink-0">
                   {item.emoji}
                 </div>
                 <div className="flex-grow">
                   <h3 className="text-xl font-bold text-[#3d2314] mb-1">{item.name}</h3>
+                  {item.variant && <p className="text-sm text-gray-500 mb-1">{item.variant}</p>}
                   <p className="text-[#6b3a28] font-medium">{item.price}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <button 
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
                     className="w-8 h-8 rounded-full border border-[#d4b4a0] text-[#6b3a28] flex items-center justify-center hover:bg-[#fdf6f0]"
                   >
                     -
                   </button>
                   <span className="w-4 text-center font-bold">{item.quantity}</span>
                   <button 
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
                     className="w-8 h-8 rounded-full border border-[#d4b4a0] text-[#6b3a28] flex items-center justify-center hover:bg-[#fdf6f0]"
                   >
                     +
@@ -53,7 +54,7 @@ export default function Cart() {
                   ₹{item.subtotal}
                 </div>
                 <button 
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={() => removeFromCart(item.cartItemId)}
                   className="text-red-400 hover:text-red-600 p-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

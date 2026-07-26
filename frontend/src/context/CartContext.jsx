@@ -11,7 +11,8 @@ const initialState = {
 function cartReducer(state, action) {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existingItemIndex = state.items.findIndex(item => item.id === action.payload.id);
+      const cartItemId = action.payload.id + (action.payload.variant ? '-' + action.payload.variant : '');
+      const existingItemIndex = state.items.findIndex(item => item.cartItemId === cartItemId);
       let newItems = [...state.items];
       
       if (existingItemIndex >= 0) {
@@ -23,6 +24,7 @@ function cartReducer(state, action) {
       } else {
         newItems.push({
           ...action.payload,
+          cartItemId,
           quantity: 1,
           subtotal: parseInt(action.payload.price.replace('₹', ''))
         });
@@ -36,10 +38,10 @@ function cartReducer(state, action) {
       };
     }
     case 'REMOVE_ITEM': {
-      const itemToRemove = state.items.find(item => item.id === action.payload);
+      const itemToRemove = state.items.find(item => item.cartItemId === action.payload);
       if (!itemToRemove) return state;
       
-      const newItems = state.items.filter(item => item.id !== action.payload);
+      const newItems = state.items.filter(item => item.cartItemId !== action.payload);
       
       return {
         ...state,
@@ -49,11 +51,11 @@ function cartReducer(state, action) {
       };
     }
     case 'UPDATE_QTY': {
-      const { id, quantity } = action.payload;
+      const { cartItemId, quantity } = action.payload;
       if (quantity < 1) return state;
       
       const newItems = state.items.map(item => {
-        if (item.id === id) {
+        if (item.cartItemId === cartItemId) {
           const price = parseInt(item.price.replace('₹', ''));
           return { ...item, quantity, subtotal: price * quantity };
         }
@@ -76,8 +78,8 @@ export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
   const addToCart = (product) => dispatch({ type: 'ADD_ITEM', payload: product });
-  const removeFromCart = (id) => dispatch({ type: 'REMOVE_ITEM', payload: id });
-  const updateQuantity = (id, quantity) => dispatch({ type: 'UPDATE_QTY', payload: { id, quantity } });
+  const removeFromCart = (cartItemId) => dispatch({ type: 'REMOVE_ITEM', payload: cartItemId });
+  const updateQuantity = (cartItemId, quantity) => dispatch({ type: 'UPDATE_QTY', payload: { cartItemId, quantity } });
   const clearCart = () => dispatch({ type: 'CLEAR_CART' });
 
   return (

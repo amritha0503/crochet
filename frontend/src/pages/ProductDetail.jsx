@@ -40,6 +40,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVariants, setSelectedVariants] = useState({});
 
   // Review form state
   const [reviewRating, setReviewRating] = useState(0);
@@ -122,19 +123,32 @@ export default function ProductDetail() {
 
   if (!product) return null;
 
-  const inCart = state.items.some(item => item.id === product.id);
+  const currentVariantString = product.variants && product.variants.length > 0 
+    ? Object.entries(selectedVariants).map(([k, v]) => `${k}: ${v}`).join(', ')
+    : null;
+
+  const inCart = state.items.some(item => item.id === product.id && item.variant === currentVariantString);
   const reviews = product.reviews || [];
   const avgRating = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : null;
 
   const handleAddToCart = () => {
+    if (product.variants && product.variants.length > 0) {
+      const missing = product.variants.find(v => !selectedVariants[v.name]);
+      if (missing) {
+        alert(`Please select a ${missing.name}`);
+        return;
+      }
+    }
+
     addToCart({
       id: product.id,
       name: product.name,
       price: `₹${product.price}`,
       emoji: '🧶',
-      image_url: product.images && product.images[0] ? product.images[0] : null
+      image_url: product.images && product.images[0] ? product.images[0] : null,
+      variant: currentVariantString
     });
   };
 
@@ -216,6 +230,34 @@ export default function ProductDetail() {
               <li>• Status: {product.stock > 0 ? <span className="text-green-600 font-bold">In Stock ({product.stock} left)</span> : <span className="text-red-500 font-bold">Out of Stock</span>}</li>
             </ul>
           </div>
+          
+          {product.variants && product.variants.length > 0 && (
+            <div className="mb-6">
+              <p className="font-bold text-[#3d2314] mb-2">Options</p>
+              <div className="space-y-4">
+                {product.variants.map((v, i) => (
+                  <div key={i}>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">{v.name}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {v.options.map((opt, j) => (
+                        <button
+                          key={j}
+                          onClick={() => setSelectedVariants(prev => ({ ...prev, [v.name]: opt }))}
+                          className={`px-4 py-2 border rounded-xl font-bold text-sm transition-colors ${
+                            selectedVariants[v.name] === opt 
+                              ? 'bg-[#c47c82] text-white border-[#c47c82]' 
+                              : 'bg-white text-gray-600 border-gray-200 hover:border-[#c47c82]'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           <div className="mt-auto pt-6">
             {!currentUser ? (

@@ -22,7 +22,7 @@ export default function Admin() {
   const initialFormState = {
     id: '', name: '', slug: '', description: '', price: 0, 
     compare_price: null, category: 'amigurumi', tags: '', 
-    images: [], stock: 0, is_featured: false, is_active: true, weight_grams: 100
+    images: [], stock: 0, is_featured: false, is_active: true, weight_grams: 100, variants: []
   };
   const [formData, setFormData] = useState(initialFormState);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -67,12 +67,36 @@ export default function Admin() {
     }));
   };
 
+  const handleAddVariant = () => {
+    setFormData(prev => ({ ...prev, variants: [...(prev.variants || []), { name: '', options: [] }] }));
+  };
+
+  const handleVariantChange = (index, field, value) => {
+    setFormData(prev => {
+      const newVariants = [...prev.variants];
+      if (field === 'options') {
+        newVariants[index][field] = value.split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        newVariants[index][field] = value;
+      }
+      return { ...prev, variants: newVariants };
+    });
+  };
+
+  const handleRemoveVariant = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleEdit = (product) => {
     setEditingProduct(product);
     setFormData({
       ...product,
       tags: product.tags ? product.tags.join(', ') : '',
       images: product.images ? product.images : [],
+      variants: product.variants ? product.variants : [],
     });
     setShowForm(true);
   };
@@ -132,6 +156,7 @@ export default function Admin() {
       ...formData,
       tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
       images: formData.images,
+      variants: formData.variants,
       created_at: editingProduct ? editingProduct.created_at : new Date().toISOString() + "Z",
       updated_at: new Date().toISOString() + "Z"
     };
@@ -305,6 +330,40 @@ export default function Admin() {
                     </div>
                  </div>
 
+                 <div>
+                    <div className="flex justify-between items-center mb-1 mt-4">
+                      <label className="block text-sm font-medium">Product Variants</label>
+                      <button type="button" onClick={handleAddVariant} className="text-xs font-bold text-[#c47c82] hover:text-[#9a6065] bg-red-50 px-2 py-1 rounded">+ Add Variant</button>
+                    </div>
+                    {formData.variants && formData.variants.length > 0 ? (
+                      <div className="space-y-3 mb-2 mt-2">
+                        {formData.variants.map((v, i) => (
+                          <div key={i} className="flex gap-2 items-start bg-gray-50 p-3 rounded border">
+                            <div className="flex-1 space-y-2">
+                              <input 
+                                placeholder="Variant Name (e.g. Color)" 
+                                value={v.name} 
+                                onChange={(e) => handleVariantChange(i, 'name', e.target.value)} 
+                                className="w-full p-2 border rounded text-sm" 
+                                required
+                              />
+                              <input 
+                                placeholder="Options (comma separated, e.g. Red, Blue)" 
+                                value={v.options.join(', ')} 
+                                onChange={(e) => handleVariantChange(i, 'options', e.target.value)} 
+                                className="w-full p-2 border rounded text-sm" 
+                                required
+                              />
+                            </div>
+                            <button type="button" onClick={() => handleRemoveVariant(i)} className="text-red-500 hover:text-red-700 font-bold px-2 py-1">&times;</button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic mb-4 mt-1">No variants added.</p>
+                    )}
+                 </div>
+
                  <div className="flex items-center gap-6 py-2">
                     <label className="flex items-center gap-2 font-bold text-[#6b3a28]">
                       <input type="checkbox" name="is_featured" checked={formData.is_featured} onChange={handleFormChange} className="w-4 h-4 accent-[#c47c82]" />
@@ -415,7 +474,7 @@ export default function Admin() {
                     <div className="space-y-2">
                       {order.items.map((item, i) => (
                         <div key={i} className="flex justify-between text-sm">
-                          <span>{item.quantity}x {item.name}</span>
+                          <span>{item.quantity}x {item.name} {item.variant ? `(${item.variant})` : ''}</span>
                           <span className="font-bold text-[#3d2314]">₹{item.subtotal}</span>
                         </div>
                       ))}

@@ -170,7 +170,7 @@ export default function Checkout() {
     setError(null);
     try {
       await axios.post(`${API_URL}/orders/`, { ...buildOrderPayload(), payment_status: 'whatsapp' });
-      const itemsList = state.items.map(i => `• ${i.name} x${i.quantity} = ₹${i.subtotal}`).join('%0A');
+      const itemsList = state.items.map(i => `• ${i.name} ${i.variant ? `(${i.variant})` : ''} x${i.quantity} = ₹${i.subtotal}`).join('%0A');
       const msg = `Hi! I'd like to order:%0A${itemsList}%0A%0ATotal: ₹${state.total_price + 50}%0AName: ${formData.firstName} ${formData.lastName}%0AAddress: ${formData.line1}, ${formData.city}%0APhone: ${formData.phone}`;
       clearCart();
       setSuccess(true);
@@ -352,11 +352,12 @@ export default function Checkout() {
             
             <div className="space-y-4 mb-6">
               {state.items.map(item => (
-                <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded-lg border border-[#f5d9a0] opacity-90">
+                <div key={item.cartItemId} className="flex justify-between items-center bg-white p-3 rounded-lg border border-[#f5d9a0] opacity-90">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{item.emoji}</span>
                     <div>
                       <div className="text-sm font-bold text-[#3d2314]">{item.name}</div>
+                      {item.variant && <div className="text-xs text-gray-500">{item.variant}</div>}
                       <div className="text-xs text-[#6b3a28]">Qty: {item.quantity}</div>
                     </div>
                   </div>

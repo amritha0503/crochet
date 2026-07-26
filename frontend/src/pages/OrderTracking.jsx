@@ -106,7 +106,7 @@ function OrderCard({ order }) {
         <p style={{ fontWeight: 700, color: '#3d2314', marginBottom: 8, fontSize: '0.9rem' }}>Items Ordered</p>
         {order.items?.map((item, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f5ede8', fontSize: '0.875rem' }}>
-            <span style={{ color: '#6b3a28' }}>{item.name} × {item.quantity}</span>
+            <span style={{ color: '#6b3a28' }}>{item.name} {item.variant ? `(${item.variant})` : ''} × {item.quantity}</span>
             <span style={{ fontWeight: 700, color: '#3d2314' }}>₹{item.subtotal}</span>
           </div>
         ))}
