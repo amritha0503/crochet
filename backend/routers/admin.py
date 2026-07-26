@@ -104,6 +104,16 @@ def update_order_status(order_id: str, update: OrderStatusUpdate, authorized: bo
         return {"success": True, "status": update.status}
     raise HTTPException(status_code=500, detail="Database not configured")
 
+@router.delete("/orders/{order_id}")
+def delete_order(order_id: str, authorized: bool = Depends(verify_passkey)):
+    if db:
+        doc_ref = db.collection("orders").document(order_id)
+        if not doc_ref.get().exists:
+            raise HTTPException(status_code=404, detail="Order not found")
+        doc_ref.delete()
+        return {"success": True, "message": f"Order {order_id} deleted"}
+    raise HTTPException(status_code=500, detail="Database not configured")
+
 @router.get("/reviews")
 def get_all_reviews(authorized: bool = Depends(verify_passkey)):
     if not db:

@@ -191,6 +191,18 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to delete this order?")) return;
+    try {
+      await axios.delete(`${API_URL}/admin/orders/${orderId}`, {
+        headers: { 'x-admin-passkey': passkey }
+      });
+      setOrders(orders.filter(o => o.id !== orderId));
+    } catch(err) {
+      alert("Failed to delete order");
+    }
+  };
+
   const handleDeleteReview = async (productId, reviewId) => {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
     try {
@@ -454,6 +466,13 @@ export default function Admin() {
                       <option value="shipped">🚚 Shipped</option>
                       <option value="delivered">✅ Delivered</option>
                     </select>
+                    <button 
+                      onClick={() => handleDeleteOrder(order.id)} 
+                      className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-sm font-bold border border-red-100 hover:bg-red-100 transition-colors"
+                      title="Delete Order"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
 
