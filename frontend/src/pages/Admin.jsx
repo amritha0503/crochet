@@ -235,7 +235,7 @@ export default function Admin() {
         )}
       </div>
 
-      {activeTab === 'products' ? (
+      {activeTab === 'products' && (
         // PRODUCTS TAB
         <>
           {showForm ? (
@@ -364,6 +364,7 @@ export default function Admin() {
               {products.length === 0 && <div className="p-8 text-center text-gray-500 font-medium">No products found in inventory.</div>}
             </div>
           )}
+        </>
       )}
 
       {activeTab === 'orders' && (
