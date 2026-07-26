@@ -684,7 +684,7 @@ export default function Home() {
               Join Our Community
             </h2>
             <p className="font-body" style={{ color: '#6b3a28', fontSize: '1.1rem', marginBottom: '32px', lineHeight: 1.6 }}>
-              Follow us on Instagram for behind-the-scenes looks, new pattern drops, and a daily dose of crochet inspiration.
+              Follow me on Instagram for behind-the-scenes looks, new pattern drops, and a daily dose of crochet inspiration.
             </p>
             <a 
               href="https://instagram.com/crochetstories" 
