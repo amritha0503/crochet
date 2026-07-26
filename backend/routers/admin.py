@@ -103,3 +103,47 @@ def update_order_status(order_id: str, update: OrderStatusUpdate, authorized: bo
         doc_ref.update({"status": update.status})
         return {"success": True, "status": update.status}
     raise HTTPException(status_code=500, detail="Database not configured")
+
+@router.get("/reviews")
+def get_all_reviews(authorized: bool = Depends(verify_passkey)):
+    if not db:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    all_reviews = []
+    docs = db.collection("products").stream()
+    for doc in docs:
+        product_data = doc.to_dict()
+        reviews = product_data.get("reviews", [])
+        for review in reviews:
+            all_reviews.append({
+                **review,
+                "product_id": product_data.get("id"),
+                "product_name": product_data.get("name", "Unknown Product"),
+            })
+            
+    # Sort newest first
+    all_reviews.sort(key=lambda r: r.get("created_at", ""), reverse=True)
+    return all_reviews
+
+@router.delete("/products/{product_id}/reviews/{review_id}")
+def delete_review(product_id: str, review_id: str, authorized: bool = Depends(verify_passkey)):
+    if not db:
+        raise HTTPException(status_code=500, detail="Database not configured")
+        
+    doc_ref = db.collection("products").document(product_id)
+    doc = doc_ref.get()
+    
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Product not found")
+        
+    product_data = doc.to_dict()
+    reviews = product_data.get("reviews", [])
+    
+    # Filter out the deleted review
+    filtered_reviews = [r for r in reviews if r.get("id") != review_id and r.get("user_id") != review_id]
+    
+    if len(filtered_reviews) == len(reviews):
+        raise HTTPException(status_code=404, detail="Review not found")
+        
+    doc_ref.update({"reviews": filtered_reviews})
+    return {"success": True, "message": "Review deleted"}

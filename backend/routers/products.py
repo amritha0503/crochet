@@ -217,9 +217,21 @@ def add_product_review(product_id: str, review: Review):
         reviews = []
         
     new_review = review.model_dump()
-    new_review["created_at"] = datetime.datetime.utcnow().isoformat() + "Z"
     
-    reviews.append(new_review)
+    # Check if this user has already reviewed this product
+    existing_index = next((i for i, r in enumerate(reviews) if r.get("user_id") == new_review["user_id"]), None)
+    
+    if existing_index is not None:
+        # Update existing review (preserve original created_at and ID)
+        new_review["id"] = reviews[existing_index].get("id", f"rev_{uuid.uuid4().hex[:8]}")
+        new_review["created_at"] = reviews[existing_index].get("created_at")
+        reviews[existing_index] = new_review
+    else:
+        # Add new review
+        new_review["id"] = f"rev_{uuid.uuid4().hex[:8]}"
+        new_review["created_at"] = datetime.datetime.utcnow().isoformat() + "Z"
+        reviews.append(new_review)
+        
     doc_ref.update({"reviews": reviews})
     
     product_data["reviews"] = reviews

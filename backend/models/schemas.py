@@ -3,6 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 
 class Review(BaseModel):
+    id: Optional[str] = None
     user_id: str
     user_name: str
     rating: int

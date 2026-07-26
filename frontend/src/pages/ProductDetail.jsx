@@ -46,6 +46,22 @@ export default function ProductDetail() {
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [hasExistingReview, setHasExistingReview] = useState(false);
+
+  // Pre-fill review if user already submitted one
+  useEffect(() => {
+    if (product && currentUser && product.reviews) {
+      const existing = product.reviews.find(r => r.user_id === currentUser.uid);
+      if (existing) {
+        setHasExistingReview(true);
+        // Only override state if we aren't actively submitting or just submitted
+        if (!submittingReview && !reviewSuccess) {
+          setReviewRating(existing.rating);
+          setReviewComment(existing.comment);
+        }
+      }
+    }
+  }, [product, currentUser, submittingReview, reviewSuccess]);
 
   useEffect(() => {
     fetchProduct();
@@ -244,11 +260,13 @@ export default function ProductDetail() {
         {/* Write a Review Form */}
         {currentUser ? (
           <div className="mb-8 p-6 bg-gradient-to-br from-[#fdf6f0] to-[#fef9f5] rounded-2xl border border-[#e8d5c8]">
-            <h3 className="font-bold text-[#3d2314] mb-4 text-lg">Write a Review</h3>
+            <h3 className="text-xl font-bold text-[#3d2314] mb-4">
+              {hasExistingReview ? 'Edit Your Review' : 'Write a Review'}
+            </h3>
             
             {reviewSuccess && (
               <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 font-medium text-sm flex items-center gap-2">
-                ✅ Thank you! Your review has been submitted.
+                ✅ Thank you! Your review has been {hasExistingReview ? 'updated' : 'submitted'}.
               </div>
             )}
 
@@ -280,7 +298,7 @@ export default function ProductDetail() {
                 disabled={submittingReview || reviewRating === 0}
                 className="bg-[#3d2314] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#6b3a28] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submittingReview ? 'Submitting...' : 'Submit Review'}
+                {submittingReview ? (hasExistingReview ? 'Updating...' : 'Submitting...') : (hasExistingReview ? 'Update Review' : 'Submit Review')}
               </button>
             </form>
           </div>
